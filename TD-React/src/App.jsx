@@ -1,13 +1,47 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
 import image from './assets/vignette_par_defaut.jpg';
 import data from './data.json';
-import {Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Card, CardContent, Box,} from '@mui/material';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    Typography,
+    Card,
+    CardContent,
+    Box,
+} from '@mui/material';
 import { saveAs } from 'file-saver';
 
+/*---------------------------------------
+ | Fonction utilitaire : retourne un objet
+ | { [matière]: count }
+ ---------------------------------------*/
+function getCourseCounts() {
+    return data.reduce((acc, item) => {
+        acc[item.course] = (acc[item.course] || 0) + 1;
+        return acc;
+    }, {});
+}
 
+/*---------------------------------------
+ | getRandomItem
+ | Retourne un élément aléatoire
+ ---------------------------------------*/
+function getRandomItem(items) {
+    const randomIndex = Math.floor(Math.random() * items.length);
+    return items[randomIndex];
+}
+
+/*---------------------------------------
+ | Styles pour la table (Material UI)
+ ---------------------------------------*/
 const tableStyles = {
     backgroundColor: 'rgba(255, 255, 255, 0.98)',
     borderRadius: '16px',
@@ -47,9 +81,13 @@ const tableStyles = {
     },
     '& .MuiTableBody-root .MuiTableRow-root:nth-of-type(even)': {
         backgroundColor: '#F1F5F9',
-    }
+    },
 };
 
+/*---------------------------------------
+ | RandomInfo
+ | Affiche aléatoirement les infos d'un étudiant
+ ---------------------------------------*/
 const RandomInfo = () => {
     const [item, setItem] = useState(getRandomItem(data));
 
@@ -65,7 +103,7 @@ const RandomInfo = () => {
                 <strong>Cours :</strong> {item.course}
             </p>
             <p>
-                <strong>Etudiant :</strong> {item.student.firstname} {item.student.lastname}
+                <strong>Étudiant :</strong> {item.student.firstname} {item.student.lastname}
             </p>
             <p>
                 <strong>Date :</strong> {item.date}
@@ -80,11 +118,16 @@ const RandomInfo = () => {
     );
 };
 
-
+/*---------------------------------------
+ | Notes
+ | Affiche la liste de toutes les notes
+ | + tri, téléchargement CSV, édition et suppression de notes
+ ---------------------------------------*/
 const Notes = () => {
     const [notesData, setNotesData] = useState(data);
     const [isAscending, setIsAscending] = useState(true);
 
+    // Tri Asc/Desc
     const handleSort = () => {
         const sortedData = [...notesData].sort((a, b) =>
             isAscending ? a.grade - b.grade : b.grade - a.grade
@@ -93,30 +136,33 @@ const Notes = () => {
         setIsAscending(!isAscending);
     };
 
+    // Téléchargement CSV
     const handleDownloadCSV = () => {
-        const headers = ["Cours", "Étudiant", "Note", "Date"];
+        const headers = ['Cours', 'Étudiant', 'Note', 'Date'];
         const csvContent = [
-            headers.join(","),
-            ...notesData.map(item =>
+            headers.join(','),
+            ...notesData.map((item) =>
                 [
                     item.course,
                     `${item.student.firstname} ${item.student.lastname}`,
                     item.grade,
-                    item.date
-                ].join(",")
-            )
-        ].join("\n");
+                    item.date,
+                ].join(',')
+            ),
+        ].join('\n');
 
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        saveAs(blob, "notes.csv");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        saveAs(blob, 'notes.csv');
     };
 
+    // Édition de la note
     const handleEdit = (index, newGrade) => {
         const updatedData = [...notesData];
         updatedData[index].grade = newGrade;
         setNotesData(updatedData);
     };
 
+    // Suppression (mettre la note à 0)
     const handleDelete = (index) => {
         const updatedData = [...notesData];
         updatedData[index].grade = 0;
@@ -128,14 +174,16 @@ const Notes = () => {
             <Typography variant="h4" className="neon-title" align="center">
                 Liste des Notes
             </Typography>
+
             <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', gap: '16px' }}>
                 <button onClick={handleSort} className="sort-button">
-                    Trier {isAscending ? "Descendant" : "Ascendant"}
+                    Trier {isAscending ? 'Descendant' : 'Ascendant'}
                 </button>
                 <button onClick={handleDownloadCSV} className="download-button">
                     Télécharger CSV
                 </button>
             </Box>
+
             <TableContainer component={Paper} sx={tableStyles}>
                 <Table>
                     <TableHead>
@@ -151,23 +199,34 @@ const Notes = () => {
                         {notesData.map((item, index) => (
                             <TableRow key={index}>
                                 <TableCell>{item.course}</TableCell>
-                                <TableCell>{`${item.student.firstname} ${item.student.lastname}`}</TableCell>
                                 <TableCell>
-                                    <span className={`grade-pill ${item.grade >= 10 ? 'passing' : 'failing'}`}>
+                                    {`${item.student.firstname} ${item.student.lastname}`}
+                                </TableCell>
+                                <TableCell>
+                                    <span
+                                        className={`grade-pill ${
+                                            item.grade >= 10 ? 'passing' : 'failing'
+                                        }`}
+                                    >
                                         {item.grade}
                                     </span>
                                 </TableCell>
                                 <TableCell>{item.date}</TableCell>
                                 <TableCell>
+                                    {/* Bouton modifier */}
                                     <button
                                         onClick={() => {
-                                            const newGrade = parseFloat(prompt("Entrez la nouvelle note à modifier : ", item.grade));
+                                            const newGrade = parseFloat(
+                                                prompt("Entrez la nouvelle note :", item.grade)
+                                            );
                                             if (!isNaN(newGrade)) handleEdit(index, newGrade);
                                         }}
                                         className="edit-button"
                                     >
                                         Modifier
                                     </button>
+
+                                    {/* Bouton supprimer (mettre la note à 0) */}
                                     <button
                                         onClick={() => handleDelete(index)}
                                         className="delete-button"
@@ -184,74 +243,20 @@ const Notes = () => {
     );
 };
 
-const Etudiants = () => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const uniqueStudents = [...new Map(
-        data.map(item => [
-            `${item.student.firstname}-${item.student.lastname}`,
-            item.student
-        ])
-    ).values()];
-
-    const filteredStudents = uniqueStudents.filter(student => {
-        const fullName = `${student.firstname} ${student.lastname}`.toLowerCase();
-        return fullName.includes(searchTerm.toLowerCase());
-    });
-
-    return (
-        <Box className="table-container">
-            <Typography variant="h4" className="neon-title">Liste des Étudiants</Typography>
-
-            <div className="search-container">
-                <input
-                    type="text"
-                    placeholder="Rechercher un étudiant..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="search-input"
-                />
-            </div>
-
-            <TableContainer component={Paper} sx={tableStyles}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Prénom</TableCell>
-                            <TableCell>Nom</TableCell>
-                            <TableCell>Nombre de cours</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {filteredStudents.map((student, index) => (
-                            <TableRow key={index}>
-                                <TableCell>{student.firstname}</TableCell>
-                                <TableCell>{student.lastname}</TableCell>
-                                <TableCell>
-                                    <span className="count-badge">
-                                        {data.filter(item =>
-                                            item.student.firstname === student.firstname &&
-                                            item.student.lastname === student.lastname
-                                        ).length}
-                                    </span>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </Box>
-    );
-};
-
+/*---------------------------------------
+ | Matieres
+ | Affiche la liste des matières,
+ | le nombre d'étudiants et la moyenne
+ ---------------------------------------*/
 const Matieres = () => {
-    const courseCounts = data.reduce((acc, item) => {
-        acc[item.course] = (acc[item.course] || 0) + 1;
-        return acc;
-    }, {});
+    // Récupère l'objet { [cours]: count }
+    const courseCounts = getCourseCounts();
 
     return (
         <Box className="table-container">
-            <Typography variant="h4" className="neon-title">Liste des Matières</Typography>
+            <Typography variant="h4" className="neon-title">
+                Liste des Matières
+            </Typography>
             <TableContainer component={Paper} sx={tableStyles}>
                 <Table>
                     <TableHead>
@@ -263,10 +268,15 @@ const Matieres = () => {
                     </TableHead>
                     <TableBody>
                         {Object.entries(courseCounts).map(([course, count], index) => {
+                            // Récupère toutes les notes pour cette matière
                             const courseGrades = data
-                                .filter(item => item.course === course)
-                                .map(item => item.grade);
-                            const average = (courseGrades.reduce((a, b) => a + b, 0) / courseGrades.length).toFixed(1);
+                                .filter((item) => item.course === course)
+                                .map((item) => item.grade);
+
+                            // Calcule la moyenne
+                            const average = (
+                                courseGrades.reduce((a, b) => a + b, 0) / courseGrades.length
+                            ).toFixed(1);
 
                             return (
                                 <TableRow key={index}>
@@ -275,7 +285,11 @@ const Matieres = () => {
                                         <span className="count-badge">{count}</span>
                                     </TableCell>
                                     <TableCell>
-                                        <span className={`grade-pill ${average >= 10 ? 'passing' : 'failing'}`}>
+                                        <span
+                                            className={`grade-pill ${
+                                                average >= 10 ? 'passing' : 'failing'
+                                            }`}
+                                        >
                                             {average}
                                         </span>
                                     </TableCell>
@@ -289,10 +303,373 @@ const Matieres = () => {
     );
 };
 
+/*---------------------------------------
+ | Etudiants
+ | - Recherche d'étudiants
+ | - Ajout / Suppression / Modification
+ | - Ajouter un cours via un dropdown
+ |   basé sur la liste de matières
+ |   existantes dans data
+ ---------------------------------------*/
+const Etudiants = () => {
+    // Pour forcer un re-rendu après chaque opération
+    const [refresh, setRefresh] = useState(false);
+
+    // Champs pour l'ajout d'un nouvel étudiant
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+
+    // Gestion de l'édition d'un étudiant existant
+    const [editingIndex, setEditingIndex] = useState(null);
+    const [editFirstName, setEditFirstName] = useState('');
+    const [editLastName, setEditLastName] = useState('');
+
+    // Champ de recherche
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // Variables pour l'ajout d'un cours
+    const [addingCourseIndex, setAddingCourseIndex] = useState(null);
+    const [selectedCourse, setSelectedCourse] = useState('');
+    const [newCourseGrade, setNewCourseGrade] = useState('');
+
+    // 1) Récupère la liste des matières existantes
+    const courseCounts = getCourseCounts();
+    // 2) Convertit en tableau pour le dropdown
+    const allCourses = Object.keys(courseCounts);
+
+    // Calcule la liste (unique) des étudiants
+    const uniqueStudents = [
+        ...new Map(
+            data.map((item) => [
+                `${item.student.firstname}-${item.student.lastname}`,
+                item.student,
+            ])
+        ).values(),
+    ];
+
+    // Filtrage selon la recherche
+    const filteredStudents = uniqueStudents.filter((student) => {
+        const fullName = `${student.firstname} ${student.lastname}`.toLowerCase();
+        return fullName.includes(searchTerm.toLowerCase());
+    });
+
+    /*---------------------------------------
+     | Ajouter un étudiant
+     ---------------------------------------*/
+    const addStudent = (e) => {
+        e.preventDefault();
+        if (!firstName.trim() || !lastName.trim()) return;
+
+        const newStudent = {
+            student: { firstname: firstName, lastname: lastName },
+            course: 'N/A',
+            grade: 0,
+            date: 'N/A',
+        };
+        data.push(newStudent);
+
+        setFirstName('');
+        setLastName('');
+        setRefresh(!refresh);
+    };
+
+    /*---------------------------------------
+     | Supprimer un étudiant
+     ---------------------------------------*/
+    const handleDelete = (student) => {
+        for (let i = data.length - 1; i >= 0; i--) {
+            const s = data[i].student;
+            if (s.firstname === student.firstname && s.lastname === student.lastname) {
+                data.splice(i, 1);
+            }
+        }
+        setRefresh(!refresh);
+    };
+
+    /*---------------------------------------
+     | Éditer un étudiant (Nom/Prénom)
+     ---------------------------------------*/
+    const handleEdit = (student, index) => {
+        setEditingIndex(index);
+        setEditFirstName(student.firstname);
+        setEditLastName(student.lastname);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingIndex(null);
+        setEditFirstName('');
+        setEditLastName('');
+    };
+
+    const handleSave = (oldStudent) => {
+        data.forEach((item) => {
+            if (
+                item.student.firstname === oldStudent.firstname &&
+                item.student.lastname === oldStudent.lastname
+            ) {
+                item.student.firstname = editFirstName;
+                item.student.lastname = editLastName;
+            }
+        });
+        setEditingIndex(null);
+        setEditFirstName('');
+        setEditLastName('');
+        setRefresh(!refresh);
+    };
+
+    /*---------------------------------------
+     | Ajouter un cours depuis le dropdown
+     ---------------------------------------*/
+    const handleAddCourse = (index) => {
+        setAddingCourseIndex(index);
+        setSelectedCourse('');
+        setNewCourseGrade('');
+    };
+
+    const handleSaveCourse = (student) => {
+        const newEntry = {
+            student: {
+                firstname: student.firstname,
+                lastname: student.lastname,
+            },
+            course: selectedCourse || 'N/A',
+            grade: newCourseGrade ? parseFloat(newCourseGrade) : 0,
+            date: 'N/A',
+        };
+        data.push(newEntry);
+
+        setAddingCourseIndex(null);
+        setSelectedCourse('');
+        setNewCourseGrade('');
+        setRefresh(!refresh);
+    };
+
+    const handleCancelCourse = () => {
+        setAddingCourseIndex(null);
+        setSelectedCourse('');
+        setNewCourseGrade('');
+    };
+
+    return (
+        <Box className="table-container">
+            <Typography variant="h4" className="neon-title">
+                Liste des Étudiants
+            </Typography>
+
+            {/* Barre de recherche */}
+            <div className="search-container">
+                <input
+                    type="text"
+                    placeholder="Rechercher un étudiant..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                />
+            </div>
+
+            {/* Formulaire d'ajout d'étudiant */}
+            <form onSubmit={addStudent} className="add-student-form">
+                <input
+                    type="text"
+                    placeholder="Prénom de l'étudiant"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                />
+                <input
+                    type="text"
+                    placeholder="Nom de l'étudiant"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                />
+                <button type="submit" className="neon-button">
+                    Ajouter
+                </button>
+            </form>
+
+            <TableContainer component={Paper} sx={tableStyles}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Prénom</TableCell>
+                            <TableCell>Nom</TableCell>
+                            <TableCell>Nombre de cours</TableCell>
+                            <TableCell>Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {filteredStudents.map((student, index) => {
+                            // Compte le nombre de cours pour cet étudiant
+                            const courseCount = data.filter(
+                                (item) =>
+                                    item.student.firstname === student.firstname &&
+                                    item.student.lastname === student.lastname
+                            ).length;
+
+                            // Mode édition Nom/Prénom
+                            if (editingIndex === index) {
+                                return (
+                                    <TableRow key={index}>
+                                        <TableCell>
+                                            <input
+                                                type="text"
+                                                value={editFirstName}
+                                                onChange={(e) => setEditFirstName(e.target.value)}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <input
+                                                type="text"
+                                                value={editLastName}
+                                                onChange={(e) => setEditLastName(e.target.value)}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="count-badge">{courseCount}</span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <button
+                                                className="neon-button"
+                                                onClick={() => handleSave(student)}
+                                            >
+                                                Sauvegarder
+                                            </button>
+                                            <button
+                                                className="neon-button"
+                                                onClick={handleCancelEdit}
+                                            >
+                                                Annuler
+                                            </button>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            }
+
+                            // Mode ajout de cours (dropdown)
+                            if (addingCourseIndex === index) {
+                                return (
+                                    <TableRow key={index}>
+                                        <TableCell>{student.firstname}</TableCell>
+                                        <TableCell>{student.lastname}</TableCell>
+                                        <TableCell>
+                                            <span className="count-badge">{courseCount}</span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '8px',
+                                                }}
+                                            >
+                                                {/* Sélecteur de matière : alimenté par allCourses */}
+                                                <select
+                                                    value={selectedCourse}
+                                                    onChange={(e) => setSelectedCourse(e.target.value)}
+                                                >
+                                                    <option value="">
+                                                        -- Choisir une matière --
+                                                    </option>
+                                                    {allCourses.map((courseName) => (
+                                                        <option key={courseName} value={courseName}>
+                                                            {courseName}
+                                                        </option>
+                                                    ))}
+                                                </select>
+
+                                                {/* Note du nouveau cours */}
+                                                <input
+                                                    type="number"
+                                                    step="0.1"
+                                                    placeholder="Note"
+                                                    value={newCourseGrade}
+                                                    onChange={(e) => setNewCourseGrade(e.target.value)}
+                                                />
+
+                                                <div style={{ display: 'flex', gap: '10px' }}>
+                                                    <button
+                                                        className="neon-button"
+                                                        onClick={() => handleSaveCourse(student)}
+                                                    >
+                                                        Enregistrer
+                                                    </button>
+                                                    <button
+                                                        className="neon-button"
+                                                        onClick={handleCancelCourse}
+                                                    >
+                                                        Annuler
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            }
+
+                            // Affichage normal
+                            return (
+                                <TableRow key={index}>
+                                    <TableCell>{student.firstname}</TableCell>
+                                    <TableCell>{student.lastname}</TableCell>
+                                    <TableCell>
+                                        <span className="count-badge">{courseCount}</span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                flexWrap: 'wrap',
+                                                gap: '10px',
+                                                marginBottom: '30px',
+                                            }}
+                                        >
+                                            {/* Modifier (bleu) */}
+                                            <button
+                                                className="neon-button"
+                                                style={{ backgroundColor: '#2563EB', color: '#fff' }}
+                                                onClick={() => handleEdit(student, index)}
+                                            >
+                                                Modifier
+                                            </button>
+                                            {/* Supprimer (rouge) */}
+                                            <button
+                                                className="neon-button"
+                                                style={{ backgroundColor: '#DC2626', color: '#fff' }}
+                                                onClick={() => handleDelete(student)}
+                                            >
+                                                Supprimer
+                                            </button>
+                                            {/* Ajouter cours (vert) */}
+                                            <button
+                                                className="neon-button"
+                                                style={{ backgroundColor: '#16A34A', color: '#fff' }}
+                                                onClick={() => handleAddCourse(index)}
+                                            >
+                                                Ajouter cours
+                                            </button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Box>
+    );
+};
+
+/*---------------------------------------
+ | APropos
+ | Affiche quelques statistiques globales
+ ---------------------------------------*/
 const APropos = () => (
     <Card className="about-card">
         <CardContent>
-            <Typography variant="h4" className="neon-title">À Propos</Typography>
+            <Typography variant="h4" className="neon-title">
+                À Propos
+            </Typography>
             <div className="stats-container">
                 <div className="stat-item">
                     <span className="stat-value">{data.length}</span>
@@ -300,13 +677,20 @@ const APropos = () => (
                 </div>
                 <div className="stat-item">
                     <span className="stat-value">
-                        {new Set(data.map(item => `${item.student.firstname} ${item.student.lastname}`)).size}
+                        {
+                            new Set(
+                                data.map(
+                                    (item) =>
+                                        `${item.student.firstname} ${item.student.lastname}`
+                                )
+                            ).size
+                        }
                     </span>
                     <span className="stat-label">Étudiants</span>
                 </div>
                 <div className="stat-item">
                     <span className="stat-value">
-                        {new Set(data.map(item => item.course)).size}
+                        {new Set(data.map((item) => item.course)).size}
                     </span>
                     <span className="stat-label">Matières</span>
                 </div>
@@ -315,16 +699,24 @@ const APropos = () => (
     </Card>
 );
 
+/*---------------------------------------
+ | Header
+ | Entête de la page
+ ---------------------------------------*/
 function Header() {
     return (
         <header>
-            <img src={image} alt="Default vignette"/>
+            <img src={image} alt="Default vignette" />
             <h1>Introduction à React</h1>
-            <h2>A la découverte des premières notions de React</h2>
+            <h2>À la découverte des premières notions de React</h2>
         </header>
     );
 }
 
+/*---------------------------------------
+ | MainContent
+ | Affiche la date, l'heure, etc.
+ ---------------------------------------*/
 function MainContent() {
     const now = new Date();
     const day = now.getDate();
@@ -337,11 +729,16 @@ function MainContent() {
     return (
         <div className="main-content">
             <p>Ici, nous afficherons des informations intéressantes :)</p>
-            <p>Bonjour, on est le {day} {month} {year} et il est {hour}:{minute}:{second}</p>
+            <p>
+                Bonjour, on est le {day} {month} {year} et il est {hour}:{minute}:{second}
+            </p>
         </div>
     );
 }
 
+/*---------------------------------------
+ | Footer
+ ---------------------------------------*/
 function Footer() {
     const now = new Date();
     const year = now.getFullYear();
@@ -352,11 +749,10 @@ function Footer() {
     );
 }
 
-function getRandomItem(items) {
-    const randomIndex = Math.floor(Math.random() * items.length);
-    return items[randomIndex];
-}
-
+/*---------------------------------------
+ | Menu
+ | Gère la navigation (Notes, Étudiants, Matières, À propos)
+ ---------------------------------------*/
 function Menu() {
     const [activeItem, setActiveItem] = useState('Notes');
 
@@ -364,7 +760,7 @@ function Menu() {
         { id: 'Notes', component: <Notes /> },
         { id: 'Etudiants', component: <Etudiants /> },
         { id: 'Matières', component: <Matieres /> },
-        { id: 'A propos', component: <APropos /> }
+        { id: 'A propos', component: <APropos /> },
     ];
 
     return (
@@ -381,20 +777,23 @@ function Menu() {
                 ))}
             </div>
             <div className="content-section">
-                {menuItems.find(item => item.id === activeItem)?.component}
+                {menuItems.find((item) => item.id === activeItem)?.component}
             </div>
         </div>
     );
 }
 
-
+/*---------------------------------------
+ | App
+ | Point d'entrée principal
+ ---------------------------------------*/
 function App() {
     return (
         <>
-            <Header/>
-            <Menu/>
-            <RandomInfo/>
-            <MainContent/>
+            <Header />
+            <Menu />
+            <RandomInfo />
+            <MainContent />
             <div className="logo-section">
                 <a href="https://vite.dev" target="_blank" rel="noopener noreferrer">
                     <img src={viteLogo} className="logo" alt="Vite logo" />
@@ -403,9 +802,10 @@ function App() {
                     <img src={reactLogo} className="logo react" alt="React logo" />
                 </a>
             </div>
-            <Footer/>
+            <Footer />
         </>
     );
 }
 
 export default App;
+
