@@ -4,19 +4,8 @@ import viteLogo from '/vite.svg';
 import './App.css';
 import image from './assets/vignette_par_defaut.jpg';
 import data from './data.json';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
-    Typography,
-    Card,
-    CardContent,
-    Box,
-} from '@mui/material';
+import {Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Card, CardContent, Box,} from '@mui/material';
+
 
 const tableStyles = {
     backgroundColor: 'rgba(255, 255, 255, 0.98)',
@@ -70,7 +59,7 @@ const RandomInfo = () => {
 
     return (
         <div className="random-info-section">
-            <h4>Les Informations Aléatoire d'un étudiant</h4>
+            <h4>Les Informations Aléatoires d'un étudiant</h4>
             <p>
                 <strong>Cours :</strong> {item.course}
             </p>
@@ -90,37 +79,72 @@ const RandomInfo = () => {
     );
 };
 
-const Notes = () => (
-    <Box className="table-container">
-        <Typography variant="h4" className="neon-title">Liste des Notes</Typography>
-        <TableContainer component={Paper} sx={tableStyles}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Cours</TableCell>
-                        <TableCell>Étudiant</TableCell>
-                        <TableCell>Note</TableCell>
-                        <TableCell>Date</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {data.map((item, index) => (
-                        <TableRow key={index}>
-                            <TableCell>{item.course}</TableCell>
-                            <TableCell>{`${item.student.firstname} ${item.student.lastname}`}</TableCell>
-                            <TableCell>
-                                <span className={`grade-pill ${item.grade >= 10 ? 'passing' : 'failing'}`}>
-                                    {item.grade}
-                                </span>
-                            </TableCell>
-                            <TableCell>{item.date}</TableCell>
+
+const Notes = () => {
+    const [notesData, setNotesData] = useState(data);
+
+    const handleEdit = (index, newGrade) => {
+        const updatedData = [...notesData];
+        updatedData[index].grade = newGrade;
+        setNotesData(updatedData);
+    };
+
+    const handleDelete = (index) => {
+        const updatedData = [...notesData];
+        updatedData[index].grade = 0;
+        setNotesData(updatedData);
+    };
+
+    return (
+        <Box className="table-container">
+            <Typography variant="h4" className="neon-title">Liste des Notes</Typography>
+            <TableContainer component={Paper} sx={tableStyles}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Cours</TableCell>
+                            <TableCell>Étudiant</TableCell>
+                            <TableCell>Note</TableCell>
+                            <TableCell>Date</TableCell>
+                            <TableCell>Actions</TableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
-    </Box>
-);
+                    </TableHead>
+                    <TableBody>
+                        {notesData.map((item, index) => (
+                            <TableRow key={index}>
+                                <TableCell>{item.course}</TableCell>
+                                <TableCell>{`${item.student.firstname} ${item.student.lastname}`}</TableCell>
+                                <TableCell>
+                                    <span className={`grade-pill ${item.grade >= 10 ? 'passing' : 'failing'}`}>
+                                        {item.grade}
+                                    </span>
+                                </TableCell>
+                                <TableCell>{item.date}</TableCell>
+                                <TableCell>
+                                    <button
+                                        onClick={() => {
+                                            const newGrade = parseFloat(prompt("Entrez la nouvelle note :", item.grade));
+                                            if (!isNaN(newGrade)) handleEdit(index, newGrade);
+                                        }}
+                                        className="edit-button"
+                                    >
+                                        Modifier
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(index)}
+                                        className="delete-button"
+                                    >
+                                        Supprimer
+                                    </button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Box>
+    );
+};
 
 const Etudiants = () => {
     const [searchTerm, setSearchTerm] = useState('');
