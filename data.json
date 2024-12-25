@@ -13,11 +13,7 @@
     {
         "unique_id": 2,
         "course": "Physics 505",
-        "student": {
-            "firstname": "Kevin",
-            "lastname": "Green",
-            "id": 7912
-        },
+
         "date": "2022-11-01",
         "grade": 64
     },

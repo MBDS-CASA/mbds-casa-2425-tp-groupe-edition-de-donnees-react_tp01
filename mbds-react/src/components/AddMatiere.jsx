@@ -1,49 +1,31 @@
 import React, { useState } from 'react';
 import { TextField, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 
-function AddStudent({ onAdd }) {
+function AddMatiere({ onAdd }) {
   const [open, setOpen] = useState(false);
-  const [firstname, setFirstname] = useState('');
-  const [lastname, setLastname] = useState('');
-  const [id, setId] = useState('');
+  const [course, setCourse] = useState('');
 
   const handleSave = () => {
-    onAdd({ firstname, lastname, id });
+    onAdd(course);
     setOpen(false);
   };
 
   return (
     <div>
       <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
-        Add Student
+        Add Course
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>Add Student</DialogTitle>
+        <DialogTitle>Add Course</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="First Name"
+            label="Course Name"
             type="text"
             fullWidth
-            value={firstname}
-            onChange={(e) => setFirstname(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            label="Last Name"
-            type="text"
-            fullWidth
-            value={lastname}
-            onChange={(e) => setLastname(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            label="ID"
-            type="text"
-            fullWidth
-            value={id}
-            onChange={(e) => setId(e.target.value)}
+            value={course}
+            onChange={(e) => setCourse(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
@@ -59,4 +41,4 @@ function AddStudent({ onAdd }) {
   );
 }
 
-export default AddStudent;
+export default AddMatiere;

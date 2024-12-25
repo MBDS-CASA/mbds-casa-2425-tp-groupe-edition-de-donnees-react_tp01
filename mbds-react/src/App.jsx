@@ -29,7 +29,7 @@ function App() {
   };
 
   return (
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen w-full bg-gray-100">
         <motion.div
             className={`fixed h-full bg-gray-900 z-20 transition-all duration-300 ease-in-out`}
             animate={{ width: isMenuOpen ? '16rem' : '0rem' }}

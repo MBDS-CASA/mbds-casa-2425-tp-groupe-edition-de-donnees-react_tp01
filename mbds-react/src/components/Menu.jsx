@@ -15,7 +15,6 @@ const Menu = ({ onSelect }) => {
         { text: 'Home', icon: <Home size={20} /> },
         { text: 'Notes', icon: <BookOpen size={20} /> },
         { text: 'Etudiants', icon: <Users size={20} /> },
-        { text: 'AddEtudiant', icon: <Users size={20} /> },
         { text: 'Matières', icon: <GraduationCap size={20} /> },
         { text: 'A propos', icon: <Info size={20} /> }
     ];
