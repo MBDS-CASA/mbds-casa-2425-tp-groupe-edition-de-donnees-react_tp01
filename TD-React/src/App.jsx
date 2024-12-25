@@ -5,6 +5,7 @@ import './App.css';
 import image from './assets/vignette_par_defaut.jpg';
 import data from './data.json';
 import {Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Card, CardContent, Box,} from '@mui/material';
+import { saveAs } from 'file-saver';
 
 
 const tableStyles = {
@@ -82,6 +83,33 @@ const RandomInfo = () => {
 
 const Notes = () => {
     const [notesData, setNotesData] = useState(data);
+    const [isAscending, setIsAscending] = useState(true);
+
+    const handleSort = () => {
+        const sortedData = [...notesData].sort((a, b) =>
+            isAscending ? a.grade - b.grade : b.grade - a.grade
+        );
+        setNotesData(sortedData);
+        setIsAscending(!isAscending);
+    };
+
+    const handleDownloadCSV = () => {
+        const headers = ["Cours", "Étudiant", "Note", "Date"];
+        const csvContent = [
+            headers.join(","),
+            ...notesData.map(item =>
+                [
+                    item.course,
+                    `${item.student.firstname} ${item.student.lastname}`,
+                    item.grade,
+                    item.date
+                ].join(",")
+            )
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        saveAs(blob, "notes.csv");
+    };
 
     const handleEdit = (index, newGrade) => {
         const updatedData = [...notesData];
@@ -97,7 +125,17 @@ const Notes = () => {
 
     return (
         <Box className="table-container">
-            <Typography variant="h4" className="neon-title">Liste des Notes</Typography>
+            <Typography variant="h4" className="neon-title" align="center">
+                Liste des Notes
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', gap: '16px' }}>
+                <button onClick={handleSort} className="sort-button">
+                    Trier {isAscending ? "Descendant" : "Ascendant"}
+                </button>
+                <button onClick={handleDownloadCSV} className="download-button">
+                    Télécharger CSV
+                </button>
+            </Box>
             <TableContainer component={Paper} sx={tableStyles}>
                 <Table>
                     <TableHead>
