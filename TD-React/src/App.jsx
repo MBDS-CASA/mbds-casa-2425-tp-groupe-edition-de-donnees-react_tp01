@@ -16,6 +16,12 @@ import {
     Card,
     CardContent,
     Box,
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField
 } from '@mui/material';
 
 const tableStyles = {
@@ -60,7 +66,7 @@ const tableStyles = {
     }
 };
 
-const RandomInfo = () => {
+const RandomInfo = ({ data }) => {
     const [item, setItem] = useState(getRandomItem(data));
 
     const handleRandomize = () => {
@@ -90,7 +96,7 @@ const RandomInfo = () => {
     );
 };
 
-const Notes = () => (
+const Notes = ({ data }) => (
     <Box className="table-container">
         <Typography variant="h4" className="neon-title">Liste des Notes</Typography>
         <TableContainer component={Paper} sx={tableStyles}>
@@ -104,7 +110,7 @@ const Notes = () => (
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {data.map((item, index) => (
+                    {data.filter(item => item.student.firstname !== "" && item.student.lastname !== "").map((item, index) => (
                         <TableRow key={index}>
                             <TableCell>{item.course}</TableCell>
                             <TableCell>{`${item.student.firstname} ${item.student.lastname}`}</TableCell>
@@ -122,13 +128,15 @@ const Notes = () => (
     </Box>
 );
 
-const Etudiants = () => {
+const Etudiants = ({ data }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const uniqueStudents = [...new Map(
-        data.map(item => [
-            `${item.student.firstname}-${item.student.lastname}`,
-            item.student
-        ])
+        data
+            .filter(item => item.student.firstname !== "" && item.student.lastname !== "")
+            .map(item => [
+                `${item.student.firstname}-${item.student.lastname}`,
+                item.student
+            ])
     ).values()];
 
     const filteredStudents = uniqueStudents.filter(student => {
@@ -181,15 +189,84 @@ const Etudiants = () => {
     );
 };
 
-const Matieres = () => {
+const Matieres = ({ data, onUpdateData }) => {
+    const [open, setOpen] = useState(false);
+    const [editingCourse, setEditingCourse] = useState(null);
+    const [formData, setFormData] = useState({
+        course: ''
+    });
+
     const courseCounts = data.reduce((acc, item) => {
-        acc[item.course] = (acc[item.course] || 0) + 1;
+        // Ne compte que si l'étudiant a un prénom ou un nom
+        if (item.student.firstname.trim() !== '' || item.student.lastname.trim() !== '') {
+            acc[item.course] = (acc[item.course] || 0) + 1;
+        } else {
+            // S'assure que la matière existe dans l'objet même si elle n'a pas d'étudiants
+            if (!acc[item.course]) {
+                acc[item.course] = 0;
+            }
+        }
         return acc;
     }, {});
 
+    const handleOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+        setEditingCourse(null);
+        setFormData({ course: '' });
+    };
+
+    const handleSubmit = () => {
+        let newData = [...data];
+        if (editingCourse !== null) {
+            // Mise à jour d'une matière existante
+            newData = newData.map(item => {
+                if (item.course === editingCourse) {
+                    return { ...item, course: formData.course };
+                }
+                return item;
+            });
+        } else {
+            // Ajout d'une nouvelle matière sans étudiant
+            newData.push({
+                course: formData.course,
+                student: { firstname: "", lastname: "" }, // étudiant vide
+                grade: 0,
+                date: new Date().toISOString().split('T')[0]
+            });
+        }
+        onUpdateData(newData);
+        handleClose();
+    };
+
+    const handleEdit = (course) => {
+        setEditingCourse(course);
+        setFormData({ course: course });
+        setOpen(true);
+    };
+
+    const handleDelete = (course) => {
+        const newData = data.filter(item => item.course !== course);
+        onUpdateData(newData);
+    };
+
     return (
         <Box className="table-container">
-            <Typography variant="h4" className="neon-title">Liste des Matières</Typography>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <Typography variant="h4" className="neon-title">Liste des Matières</Typography>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleOpen}
+                    sx={{ background: 'linear-gradient(90deg, #3B82F6 0%, #2563EB 100%)' }}
+                >
+                    Ajouter une matière
+                </Button>
+            </div>
+
             <TableContainer component={Paper} sx={tableStyles}>
                 <Table>
                     <TableHead>
@@ -197,14 +274,22 @@ const Matieres = () => {
                             <TableCell>Matière</TableCell>
                             <TableCell>Nombre d'étudiants</TableCell>
                             <TableCell>Moyenne</TableCell>
+                            <TableCell>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {Object.entries(courseCounts).map(([course, count], index) => {
                             const courseGrades = data
-                                .filter(item => item.course === course)
+                                .filter(item =>
+                                    item.course === course &&
+                                    (item.student.firstname.trim() !== '' || item.student.lastname.trim() !== '')
+                                )
                                 .map(item => item.grade);
-                            const average = (courseGrades.reduce((a, b) => a + b, 0) / courseGrades.length).toFixed(1);
+
+                            // Calcul de la moyenne avec gestion du cas où il n'y a pas d'étudiants
+                            const average = courseGrades.length > 0
+                                ? (courseGrades.reduce((a, b) => a + b, 0) / courseGrades.length).toFixed(1)
+                                : "0.0";
 
                             return (
                                 <TableRow key={index}>
@@ -213,9 +298,24 @@ const Matieres = () => {
                                         <span className="count-badge">{count}</span>
                                     </TableCell>
                                     <TableCell>
-                                        <span className={`grade-pill ${average >= 10 ? 'passing' : 'failing'}`}>
+                                        <span className={`grade-pill ${average > 0 ? (average >= 10 ? 'passing' : 'failing') : ''}`}>
                                             {average}
                                         </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Button
+                                            onClick={() => handleEdit(course)}
+                                            color="primary"
+                                            sx={{ mr: 1 }}
+                                        >
+                                            Modifier
+                                        </Button>
+                                        <Button
+                                            onClick={() => handleDelete(course)}
+                                            color="error"
+                                        >
+                                            Supprimer
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             );
@@ -223,35 +323,69 @@ const Matieres = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+
+            <Dialog open={open} onClose={handleClose}>
+                <DialogTitle>
+                    {editingCourse ? 'Modifier la matière' : 'Ajouter une matière'}
+                </DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Nom de la matière"
+                        fullWidth
+                        value={formData.course}
+                        onChange={(e) => setFormData({ course: e.target.value })}
+                        sx={{ mt: 2 }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="primary">
+                        Annuler
+                    </Button>
+                    <Button onClick={handleSubmit} color="primary">
+                        {editingCourse ? 'Modifier' : 'Ajouter'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };
 
-const APropos = () => (
-    <Card className="about-card">
-        <CardContent>
-            <Typography variant="h4" className="neon-title">À Propos</Typography>
-            <div className="stats-container">
-                <div className="stat-item">
-                    <span className="stat-value">{data.length}</span>
-                    <span className="stat-label">Total des notes</span>
+const APropos = ({ data }) => {
+    // Filtrer les étudiants non vides pour les statistiques
+    const filteredData = data.filter(item =>
+        item.student.firstname.trim() !== '' || item.student.lastname.trim() !== ''
+    );
+
+    return (
+        <Card className="about-card">
+            <CardContent>
+                <Typography variant="h4" className="neon-title">À Propos</Typography>
+                <div className="stats-container">
+                    <div className="stat-item">
+                        <span className="stat-value">{filteredData.length}</span>
+                        <span className="stat-label">Total des notes</span>
+                    </div>
+                    <div className="stat-item">
+                        <span className="stat-value">
+                            {new Set(filteredData.map(item =>
+                                `${item.student.firstname} ${item.student.lastname}`
+                            )).size}
+                        </span>
+                        <span className="stat-label">Étudiants</span>
+                    </div>
+                    <div className="stat-item">
+                        <span className="stat-value">
+                            {new Set(data.map(item => item.course)).size}
+                        </span>
+                        <span className="stat-label">Matières</span>
+                    </div>
                 </div>
-                <div className="stat-item">
-                    <span className="stat-value">
-                        {new Set(data.map(item => `${item.student.firstname} ${item.student.lastname}`)).size}
-                    </span>
-                    <span className="stat-label">Étudiants</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-value">
-                        {new Set(data.map(item => item.course)).size}
-                    </span>
-                    <span className="stat-label">Matières</span>
-                </div>
-            </div>
-        </CardContent>
-    </Card>
-);
+            </CardContent>
+        </Card>
+    );
+};
 
 function Header() {
     return (
@@ -295,14 +429,14 @@ function getRandomItem(items) {
     return items[randomIndex];
 }
 
-function Menu() {
+function Menu({ data, onUpdateData }) {
     const [activeItem, setActiveItem] = useState('Notes');
 
     const menuItems = [
-        { id: 'Notes', component: <Notes /> },
-        { id: 'Etudiants', component: <Etudiants /> },
-        { id: 'Matières', component: <Matieres /> },
-        { id: 'A propos', component: <APropos /> }
+        { id: 'Notes', component: <Notes data={data} /> },
+        { id: 'Etudiants', component: <Etudiants data={data} /> },
+        { id: 'Matières', component: <Matieres data={data} onUpdateData={onUpdateData} /> },
+        { id: 'A propos', component: <APropos data={data} /> }
     ];
 
     return (
@@ -325,13 +459,18 @@ function Menu() {
     );
 }
 
-
 function App() {
+    const [courseData, setCourseData] = useState(data);
+
+    const handleUpdateData = (newData) => {
+        setCourseData(newData);
+    };
+
     return (
         <>
             <Header/>
-            <Menu/>
-            <RandomInfo/>
+            <Menu data={courseData} onUpdateData={handleUpdateData}/>
+            <RandomInfo data={courseData}/>
             <MainContent/>
             <div className="logo-section">
                 <a href="https://vite.dev" target="_blank" rel="noopener noreferrer">
