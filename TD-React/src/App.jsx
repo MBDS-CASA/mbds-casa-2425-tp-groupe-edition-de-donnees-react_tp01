@@ -161,7 +161,7 @@ const Notes = () => {
                                 <TableCell>
                                     <button
                                         onClick={() => {
-                                            const newGrade = parseFloat(prompt("Entrez la nouvelle note :", item.grade));
+                                            const newGrade = parseFloat(prompt("Entrez la nouvelle note à modifier : ", item.grade));
                                             if (!isNaN(newGrade)) handleEdit(index, newGrade);
                                         }}
                                         className="edit-button"
