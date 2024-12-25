@@ -98,7 +98,7 @@ const RandomInfo = ({ data }) => {
 
 const Notes = ({ data }) => (
     <Box className="table-container">
-        <Typography variant="h4" className="neon-title">Liste des Notes</Typography>
+        <Typography variant="h4" className="neon-title">Liste des Notes des Etudiants</Typography>
         <TableContainer component={Paper} sx={tableStyles}>
             <Table>
                 <TableHead>
