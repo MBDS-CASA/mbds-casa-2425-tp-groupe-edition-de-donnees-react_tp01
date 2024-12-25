@@ -17,6 +17,7 @@ import {
     CardContent,
     Box,
 } from '@mui/material';
+import { saveAs } from 'file-saver';
 
 /*---------------------------------------
  | Fonction utilitaire : retourne un objet
@@ -80,7 +81,7 @@ const tableStyles = {
     },
     '& .MuiTableBody-root .MuiTableRow-root:nth-of-type(even)': {
         backgroundColor: '#F1F5F9',
-    }
+    },
 };
 
 /*---------------------------------------
@@ -120,42 +121,127 @@ const RandomInfo = () => {
 /*---------------------------------------
  | Notes
  | Affiche la liste de toutes les notes
+ | + tri, téléchargement CSV, édition et suppression de notes
  ---------------------------------------*/
-const Notes = () => (
-    <Box className="table-container">
-        <Typography variant="h4" className="neon-title">Liste des Notes</Typography>
-        <TableContainer component={Paper} sx={tableStyles}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Cours</TableCell>
-                        <TableCell>Étudiant</TableCell>
-                        <TableCell>Note</TableCell>
-                        <TableCell>Date</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {data.map((item, index) => (
-                        <TableRow key={index}>
-                            <TableCell>{item.course}</TableCell>
-                            <TableCell>{`${item.student.firstname} ${item.student.lastname}`}</TableCell>
-                            <TableCell>
-                                <span
-                                    className={`grade-pill ${
-                                        item.grade >= 10 ? 'passing' : 'failing'
-                                    }`}
-                                >
-                                    {item.grade}
-                                </span>
-                            </TableCell>
-                            <TableCell>{item.date}</TableCell>
+const Notes = () => {
+    const [notesData, setNotesData] = useState(data);
+    const [isAscending, setIsAscending] = useState(true);
+
+    // Tri Asc/Desc
+    const handleSort = () => {
+        const sortedData = [...notesData].sort((a, b) =>
+            isAscending ? a.grade - b.grade : b.grade - a.grade
+        );
+        setNotesData(sortedData);
+        setIsAscending(!isAscending);
+    };
+
+    // Téléchargement CSV
+    const handleDownloadCSV = () => {
+        const headers = ['Cours', 'Étudiant', 'Note', 'Date'];
+        const csvContent = [
+            headers.join(','),
+            ...notesData.map((item) =>
+                [
+                    item.course,
+                    `${item.student.firstname} ${item.student.lastname}`,
+                    item.grade,
+                    item.date,
+                ].join(',')
+            ),
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        saveAs(blob, 'notes.csv');
+    };
+
+    // Édition de la note
+    const handleEdit = (index, newGrade) => {
+        const updatedData = [...notesData];
+        updatedData[index].grade = newGrade;
+        setNotesData(updatedData);
+    };
+
+    // Suppression (mettre la note à 0)
+    const handleDelete = (index) => {
+        const updatedData = [...notesData];
+        updatedData[index].grade = 0;
+        setNotesData(updatedData);
+    };
+
+    return (
+        <Box className="table-container">
+            <Typography variant="h4" className="neon-title" align="center">
+                Liste des Notes
+            </Typography>
+
+            <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', gap: '16px' }}>
+                <button onClick={handleSort} className="sort-button">
+                    Trier {isAscending ? 'Descendant' : 'Ascendant'}
+                </button>
+                <button onClick={handleDownloadCSV} className="download-button">
+                    Télécharger CSV
+                </button>
+            </Box>
+
+            <TableContainer component={Paper} sx={tableStyles}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Cours</TableCell>
+                            <TableCell>Étudiant</TableCell>
+                            <TableCell>Note</TableCell>
+                            <TableCell>Date</TableCell>
+                            <TableCell>Actions</TableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
-    </Box>
-);
+                    </TableHead>
+                    <TableBody>
+                        {notesData.map((item, index) => (
+                            <TableRow key={index}>
+                                <TableCell>{item.course}</TableCell>
+                                <TableCell>
+                                    {`${item.student.firstname} ${item.student.lastname}`}
+                                </TableCell>
+                                <TableCell>
+                                    <span
+                                        className={`grade-pill ${
+                                            item.grade >= 10 ? 'passing' : 'failing'
+                                        }`}
+                                    >
+                                        {item.grade}
+                                    </span>
+                                </TableCell>
+                                <TableCell>{item.date}</TableCell>
+                                <TableCell>
+                                    {/* Bouton modifier */}
+                                    <button
+                                        onClick={() => {
+                                            const newGrade = parseFloat(
+                                                prompt("Entrez la nouvelle note :", item.grade)
+                                            );
+                                            if (!isNaN(newGrade)) handleEdit(index, newGrade);
+                                        }}
+                                        className="edit-button"
+                                    >
+                                        Modifier
+                                    </button>
+
+                                    {/* Bouton supprimer (mettre la note à 0) */}
+                                    <button
+                                        onClick={() => handleDelete(index)}
+                                        className="delete-button"
+                                    >
+                                        Supprimer
+                                    </button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Box>
+    );
+};
 
 /*---------------------------------------
  | Matieres
@@ -168,7 +254,9 @@ const Matieres = () => {
 
     return (
         <Box className="table-container">
-            <Typography variant="h4" className="neon-title">Liste des Matières</Typography>
+            <Typography variant="h4" className="neon-title">
+                Liste des Matières
+            </Typography>
             <TableContainer component={Paper} sx={tableStyles}>
                 <Table>
                     <TableHead>
@@ -179,12 +267,12 @@ const Matieres = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {/* On itère sur courseCounts pour générer le tableau */}
                         {Object.entries(courseCounts).map(([course, count], index) => {
                             // Récupère toutes les notes pour cette matière
                             const courseGrades = data
-                                .filter(item => item.course === course)
-                                .map(item => item.grade);
+                                .filter((item) => item.course === course)
+                                .map((item) => item.grade);
+
                             // Calcule la moyenne
                             const average = (
                                 courseGrades.reduce((a, b) => a + b, 0) / courseGrades.length
@@ -244,25 +332,23 @@ const Etudiants = () => {
     const [selectedCourse, setSelectedCourse] = useState('');
     const [newCourseGrade, setNewCourseGrade] = useState('');
 
-    // 1) Récupère la liste des matières existantes depuis data
+    // 1) Récupère la liste des matières existantes
     const courseCounts = getCourseCounts();
-    // => un objet { MATH: 2, PHYSIQUE: 3, ... }
     // 2) Convertit en tableau pour le dropdown
     const allCourses = Object.keys(courseCounts);
-    // => ['MATH', 'PHYSIQUE', 'CHIMIE', etc.]
 
     // Calcule la liste (unique) des étudiants
     const uniqueStudents = [
         ...new Map(
-            data.map(item => [
+            data.map((item) => [
                 `${item.student.firstname}-${item.student.lastname}`,
-                item.student
+                item.student,
             ])
-        ).values()
+        ).values(),
     ];
 
     // Filtrage selon la recherche
-    const filteredStudents = uniqueStudents.filter(student => {
+    const filteredStudents = uniqueStudents.filter((student) => {
         const fullName = `${student.firstname} ${student.lastname}`.toLowerCase();
         return fullName.includes(searchTerm.toLowerCase());
     });
@@ -278,7 +364,7 @@ const Etudiants = () => {
             student: { firstname: firstName, lastname: lastName },
             course: 'N/A',
             grade: 0,
-            date: 'N/A'
+            date: 'N/A',
         };
         data.push(newStudent);
 
@@ -316,7 +402,7 @@ const Etudiants = () => {
     };
 
     const handleSave = (oldStudent) => {
-        data.forEach(item => {
+        data.forEach((item) => {
             if (
                 item.student.firstname === oldStudent.firstname &&
                 item.student.lastname === oldStudent.lastname
@@ -344,11 +430,11 @@ const Etudiants = () => {
         const newEntry = {
             student: {
                 firstname: student.firstname,
-                lastname: student.lastname
+                lastname: student.lastname,
             },
             course: selectedCourse || 'N/A',
             grade: newCourseGrade ? parseFloat(newCourseGrade) : 0,
-            date: 'N/A'
+            date: 'N/A',
         };
         data.push(newEntry);
 
@@ -366,7 +452,9 @@ const Etudiants = () => {
 
     return (
         <Box className="table-container">
-            <Typography variant="h4" className="neon-title">Liste des Étudiants</Typography>
+            <Typography variant="h4" className="neon-title">
+                Liste des Étudiants
+            </Typography>
 
             {/* Barre de recherche */}
             <div className="search-container">
@@ -413,9 +501,10 @@ const Etudiants = () => {
                     <TableBody>
                         {filteredStudents.map((student, index) => {
                             // Compte le nombre de cours pour cet étudiant
-                            const courseCount = data.filter(item =>
-                                item.student.firstname === student.firstname &&
-                                item.student.lastname === student.lastname
+                            const courseCount = data.filter(
+                                (item) =>
+                                    item.student.firstname === student.firstname &&
+                                    item.student.lastname === student.lastname
                             ).length;
 
                             // Mode édition Nom/Prénom
@@ -467,19 +556,36 @@ const Etudiants = () => {
                                             <span className="count-badge">{courseCount}</span>
                                         </TableCell>
                                         <TableCell>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '8px',
+                                                }}
+                                            >
                                                 {/* Sélecteur de matière : alimenté par allCourses */}
                                                 <select
                                                     value={selectedCourse}
                                                     onChange={(e) => setSelectedCourse(e.target.value)}
                                                 >
-                                                    <option value="">-- Choisir une matière --</option>
+                                                    <option value="">
+                                                        -- Choisir une matière --
+                                                    </option>
                                                     {allCourses.map((courseName) => (
                                                         <option key={courseName} value={courseName}>
                                                             {courseName}
                                                         </option>
                                                     ))}
                                                 </select>
+
+                                                {/* Note du nouveau cours */}
+                                                <input
+                                                    type="number"
+                                                    step="0.1"
+                                                    placeholder="Note"
+                                                    value={newCourseGrade}
+                                                    onChange={(e) => setNewCourseGrade(e.target.value)}
+                                                />
 
                                                 <div style={{ display: 'flex', gap: '10px' }}>
                                                     <button
@@ -510,7 +616,14 @@ const Etudiants = () => {
                                         <span className="count-badge">{courseCount}</span>
                                     </TableCell>
                                     <TableCell>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px',marginBottom:'30px' }}>
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                flexWrap: 'wrap',
+                                                gap: '10px',
+                                                marginBottom: '30px',
+                                            }}
+                                        >
                                             {/* Modifier (bleu) */}
                                             <button
                                                 className="neon-button"
@@ -554,7 +667,9 @@ const Etudiants = () => {
 const APropos = () => (
     <Card className="about-card">
         <CardContent>
-            <Typography variant="h4" className="neon-title">À Propos</Typography>
+            <Typography variant="h4" className="neon-title">
+                À Propos
+            </Typography>
             <div className="stats-container">
                 <div className="stat-item">
                     <span className="stat-value">{data.length}</span>
@@ -562,13 +677,20 @@ const APropos = () => (
                 </div>
                 <div className="stat-item">
                     <span className="stat-value">
-                        {new Set(data.map(item => `${item.student.firstname} ${item.student.lastname}`)).size}
+                        {
+                            new Set(
+                                data.map(
+                                    (item) =>
+                                        `${item.student.firstname} ${item.student.lastname}`
+                                )
+                            ).size
+                        }
                     </span>
                     <span className="stat-label">Étudiants</span>
                 </div>
                 <div className="stat-item">
                     <span className="stat-value">
-                        {new Set(data.map(item => item.course)).size}
+                        {new Set(data.map((item) => item.course)).size}
                     </span>
                     <span className="stat-label">Matières</span>
                 </div>
@@ -584,7 +706,7 @@ const APropos = () => (
 function Header() {
     return (
         <header>
-            <img src={image} alt="Default vignette"/>
+            <img src={image} alt="Default vignette" />
             <h1>Introduction à React</h1>
             <h2>À la découverte des premières notions de React</h2>
         </header>
@@ -638,7 +760,7 @@ function Menu() {
         { id: 'Notes', component: <Notes /> },
         { id: 'Etudiants', component: <Etudiants /> },
         { id: 'Matières', component: <Matieres /> },
-        { id: 'A propos', component: <APropos /> }
+        { id: 'A propos', component: <APropos /> },
     ];
 
     return (
@@ -655,7 +777,7 @@ function Menu() {
                 ))}
             </div>
             <div className="content-section">
-                {menuItems.find(item => item.id === activeItem)?.component}
+                {menuItems.find((item) => item.id === activeItem)?.component}
             </div>
         </div>
     );
@@ -686,3 +808,4 @@ function App() {
 }
 
 export default App;
+
