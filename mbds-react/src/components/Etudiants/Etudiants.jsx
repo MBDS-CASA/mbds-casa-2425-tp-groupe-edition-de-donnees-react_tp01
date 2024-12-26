@@ -13,9 +13,9 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import AddStudent from './AddStudent';
-import EditStudent from './EditStudent';
-import data from '../../../data.json';
+import AddStudent from './AddStudent.jsx';
+import EditStudent from './EditStudent.jsx';
+import data from '../../../../data.json';
 
 function Etudiants() {
   const [students, setStudents] = useState([]);

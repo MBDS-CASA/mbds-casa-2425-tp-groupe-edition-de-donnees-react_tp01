@@ -4,12 +4,12 @@ import { Menu as MenuIcon, X } from 'lucide-react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './components/Home';
-import Notes from './components/Notes';
-import Etudiants from './components/Etudiants';
-import Matieres from './components/Matieres';
+import Notes from './components/Notes/Notes.jsx';
+import Etudiants from './components/Etudiants/Etudiants.jsx';
+import Matieres from './components/Matiere/Matieres.jsx';
 import About from './components/About';
-import Menu from './components/Menu';
-import AddStudent from "./components/AddStudent.jsx";
+import Menu from './components/ui/Menu.jsx';
+import AddStudent from "./components/Etudiants/AddStudent.jsx";
 
 
 function App() {

@@ -13,9 +13,9 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import TextField from '@mui/material/TextField';
-import data from '../../../data.json';
-import AddMatiere from './AddMatiere';
-import EditMatiere from './EditMatiere';
+import data from '../../../../data.json';
+import AddMatiere from './AddMatiere.jsx';
+import EditMatiere from './EditMatiere.jsx';
 
 function Matieres() {
   const [courses, setCourses] = useState([]);

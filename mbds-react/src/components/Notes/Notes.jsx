@@ -9,8 +9,8 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import TablePagination from '@mui/material/TablePagination';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
-import notesData from '../../../data.json';
-import './Notes.css';
+import notesData from '../../../../data.json';
+import '../Notes.css';
 
 function Notes() {
     const [notes, setNotes] = useState([]);
@@ -118,7 +118,6 @@ function Notes() {
                             .map((note) => (
                                 <TableRow key={note.unique_id}>
                                     <TableCell>{note.course}</TableCell>
-                                    <TableCell>{`${note.student.firstname} ${note.student.lastname}`}</TableCell>
                                     <TableCell>{note.date}</TableCell>
                                     <TableCell>{note.grade}</TableCell>
                                 </TableRow>
