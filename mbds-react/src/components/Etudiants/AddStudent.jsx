@@ -1,15 +1,24 @@
 import React, { useState } from 'react';
-import { TextField, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { TextField, Button, Dialog, DialogActions, DialogContent, DialogTitle, Alert } from '@mui/material';
+import { createStudent } from '../../services/apiService.js';
 
 function AddStudent({ onAdd }) {
   const [open, setOpen] = useState(false);
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [id, setId] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSave = () => {
-    onAdd({ firstname, lastname, id });
-    setOpen(false);
+  const handleSave = async () => {
+    try {
+      const newStudent = await createStudent({ firstName: firstname, lastName: lastname, _id: id });
+      onAdd(newStudent);
+      setOpen(false);
+      setError('');
+    } catch (error) {
+      setError('Erreur lors de la création de l\'étudiant. Veuillez réessayer.');
+      console.error('Error creating student:', error);
+    }
   };
 
   return (
@@ -20,6 +29,7 @@ function AddStudent({ onAdd }) {
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>Add Student</DialogTitle>
         <DialogContent>
+          {error && <Alert severity="error">{error}</Alert>}
           <TextField
             autoFocus
             margin="dense"

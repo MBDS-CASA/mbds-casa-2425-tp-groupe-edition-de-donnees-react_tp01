@@ -1,25 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import {TextField, Button, Dialog, DialogActions, DialogContent, DialogTitle, Alert} from '@mui/material';
+import { updateStudent } from '../../services/apiService.js';
 
 function EditStudent({ student, onSave, onClose }) {
   const [open, setOpen] = useState(false);
-  const [firstname, setFirstname] = useState(student.firstname);
-  const [lastname, setLastname] = useState(student.lastname);
-  const [id, setId] = useState(student.id);
+  const [firstname, setFirstname] = useState(student.firstName);
+  const [lastname, setLastname] = useState(student.lastName);
+  const [id, setId] = useState(student._id);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setOpen(true);
   }, []);
 
-  const handleSave = () => {
-    onSave({ ...student, firstname, lastname, id });
-    setOpen(false);
+  const handleSave = async () => {
+    try {
+      const updatedStudent = await updateStudent({ firstName: firstname, lastName: lastname, _id: id });
+      onSave(updatedStudent);
+      debugger
+      setOpen(false);
+      setError('');
+    } catch (error) {
+      setError('Erreur lors de la mise à jour de l\'étudiant. Veuillez réessayer.');
+      console.error('Error updating student:', error);
+    }
   };
 
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Edit Student</DialogTitle>
       <DialogContent>
+        {error && <Alert severity="error">{error}</Alert>}
         <TextField
           autoFocus
           margin="dense"

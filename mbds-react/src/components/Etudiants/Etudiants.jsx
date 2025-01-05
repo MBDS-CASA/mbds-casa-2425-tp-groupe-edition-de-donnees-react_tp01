@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getStudents } from '../../services/apiService.js';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -15,19 +16,25 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AddStudent from './AddStudent.jsx';
 import EditStudent from './EditStudent.jsx';
-import data from '../../../../data.json';
 
 function Etudiants() {
   const [students, setStudents] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('firstname');
+  const [orderBy, setOrderBy] = useState('firstName');
   const [editingStudent, setEditingStudent] = useState(null);
 
   useEffect(() => {
-    const studentsData = data.map(entry => entry.student);
-    setStudents(studentsData);
+    const fetchData = async () => {
+      try {
+        const result = await getStudents();
+        setStudents(result);
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    };
+    fetchData();
   }, []);
 
   const handleRequestSort = (property) => {
@@ -54,12 +61,12 @@ function Etudiants() {
   };
 
   const handleSaveStudent = (updatedStudent) => {
-    setStudents(students.map(student => (student.id === updatedStudent.id ? updatedStudent : student)));
+    setStudents(students.map(student => (student._id === updatedStudent._id ? updatedStudent : student)));
     setEditingStudent(null);
   };
 
   const handleDeleteStudent = (id) => {
-    setStudents(students.filter(student => student.id !== id));
+    setStudents(students.filter(student => student._id !== id));
   };
 
   const sortedStudents = students.sort((a, b) => {
@@ -74,6 +81,7 @@ function Etudiants() {
     <div style={{ display: 'flex', gap: '20px', padding: '20px' }}>
       <div style={{ flex: '1', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
         <AddStudent onAdd={handleAddStudent} />
+
       </div>
       <div style={{ flex: '3' }}>
         <TableContainer component={Paper} style={{ padding: '20px', borderRadius: '8px' }}>
@@ -82,27 +90,27 @@ function Etudiants() {
               <TableRow>
                 <TableCell>
                   <TableSortLabel
-                    active={orderBy === 'firstname'}
-                    direction={orderBy === 'firstname' ? order : 'asc'}
-                    onClick={() => handleRequestSort('firstname')}
+                    active={orderBy === 'firstName'}
+                    direction={orderBy === 'firstName' ? order : 'asc'}
+                    onClick={() => handleRequestSort('firstName')}
                   >
-                    First Name
+                    Prénom
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
                   <TableSortLabel
-                    active={orderBy === 'lastname'}
-                    direction={orderBy === 'lastname' ? order : 'asc'}
-                    onClick={() => handleRequestSort('lastname')}
+                    active={orderBy === 'lastName'}
+                    direction={orderBy === 'lastName' ? order : 'asc'}
+                    onClick={() => handleRequestSort('lastName')}
                   >
-                    Last Name
+                    Nom
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
                   <TableSortLabel
-                    active={orderBy === 'id'}
-                    direction={orderBy === 'id' ? order : 'asc'}
-                    onClick={() => handleRequestSort('id')}
+                    active={orderBy === '_id'}
+                    direction={orderBy === '_id' ? order : 'asc'}
+                    onClick={() => handleRequestSort('_id')}
                   >
                     ID
                   </TableSortLabel>
@@ -111,11 +119,11 @@ function Etudiants() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {sortedStudents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((student, index) => (
-                <TableRow key={index}>
-                  <TableCell>{student.firstname}</TableCell>
-                  <TableCell>{student.lastname}</TableCell>
-                  <TableCell>{student.id}</TableCell>
+              {sortedStudents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((student) => (
+                <TableRow key={student._id}>
+                  <TableCell>{student.firstName}</TableCell>
+                  <TableCell>{student.lastName}</TableCell>
+                  <TableCell>{student._id}</TableCell>
                   <TableCell>
                     <IconButton color="primary" aria-label="view student">
                       <VisibilityIcon />
@@ -123,7 +131,7 @@ function Etudiants() {
                     <IconButton color="primary" aria-label="edit student" onClick={() => handleEditStudent(student)}>
                       <EditIcon />
                     </IconButton>
-                    <IconButton color="secondary" aria-label="delete student" onClick={() => handleDeleteStudent(student.id)}>
+                    <IconButton color="secondary" aria-label="delete student" onClick={() => handleDeleteStudent(student._id)}>
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getStudents, getCourses, getGrades } from '../../services/apiService.js';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -9,7 +10,6 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import TablePagination from '@mui/material/TablePagination';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
-import notesData from '../../../../data.json';
 import '../Notes.css';
 
 function Notes() {
@@ -22,8 +22,16 @@ function Notes() {
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
     useEffect(() => {
-        setNotes(notesData);
-        setFilteredNotes(notesData);
+        const fetchData = async () => {
+            try {
+                const grades = await getGrades();
+                setNotes(grades);
+                setFilteredNotes(grades);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+        fetchData();
     }, []);
 
     const handleSearch = (event) => {
@@ -32,8 +40,8 @@ function Notes() {
         setFilteredNotes(
             notes.filter(
                 (note) =>
-                    note.course.toLowerCase().includes(value) ||
-                    `${note.student.firstname.toLowerCase()} ${note.student.lastname.toLowerCase()}`.includes(value)
+                    note.course.name.toLowerCase().includes(value) ||
+                    `${note.student.firstName.toLowerCase()} ${note.student.lastName.toLowerCase()}`.includes(value)
             )
         );
     };
@@ -116,9 +124,9 @@ function Notes() {
                         {filteredNotes
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                             .map((note) => (
-                                <TableRow key={note.unique_id}>
-                                    <TableCell>{note.course}</TableCell>
-                                    <TableCell>{note.date}</TableCell>
+                                <TableRow key={note._id}>
+                                    <TableCell>{note.course.name}</TableCell>
+                                    <TableCell>{new Date(note.date).toLocaleDateString()}</TableCell>
                                     <TableCell>{note.grade}</TableCell>
                                 </TableRow>
                             ))}
