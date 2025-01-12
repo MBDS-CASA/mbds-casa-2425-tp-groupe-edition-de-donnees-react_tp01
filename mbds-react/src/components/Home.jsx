@@ -3,7 +3,7 @@ import { Card, CardContent } from './ui/Card.jsx';
 import { Button } from './ui/button.jsx';
 import { School, UserCircle2, Calendar, GraduationCap } from 'lucide-react';
 import { motion } from 'framer-motion';
-import data from '../../../data.json';
+import data from '../../data.json';
 
 const Home = () => {
     const dashboardData = [

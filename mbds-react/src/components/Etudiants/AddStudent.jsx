@@ -11,7 +11,7 @@ function AddStudent({ onAdd }) {
 
   const handleSave = async () => {
     try {
-      const newStudent = await createStudent({ firstName: firstname, lastName: lastname, _id: id });
+      const newStudent = await createStudent({ firstName: firstname, lastName: lastname });
       onAdd(newStudent);
       setOpen(false);
       setError('');
@@ -47,14 +47,15 @@ function AddStudent({ onAdd }) {
             value={lastname}
             onChange={(e) => setLastname(e.target.value)}
           />
-          <TextField
-            margin="dense"
-            label="ID"
-            type="text"
-            fullWidth
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-          />
+          {/*<TextField*/}
+          {/*    */}
+          {/*  margin="dense"*/}
+          {/*  label="ID"*/}
+          {/*  type="text"*/}
+          {/*  fullWidth*/}
+          {/*  value={id}*/}
+          {/*  onChange={(e) => setId(e.target.value)}*/}
+          {/*/>*/}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)} color="primary">

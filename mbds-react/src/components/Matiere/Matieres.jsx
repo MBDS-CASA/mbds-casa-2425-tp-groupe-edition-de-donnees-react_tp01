@@ -13,7 +13,8 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import TextField from '@mui/material/TextField';
-import data from '../../../../data.json';
+import Alert from '@mui/material/Alert';
+import { getCourses, deleteCourse } from '../../services/apiService.js';
 import AddMatiere from './AddMatiere.jsx';
 import EditMatiere from './EditMatiere.jsx';
 
@@ -24,13 +25,22 @@ function Matieres() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('course');
+  const [orderBy, setOrderBy] = useState('name');
   const [editingCourse, setEditingCourse] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const coursesData = data.map(note => note.course);
-    setCourses([...new Set(coursesData)]);
-    setFilteredCourses([...new Set(coursesData)]);
+    const fetchCourses = async () => {
+      try {
+        const coursesData = await getCourses();
+        setCourses(coursesData);
+        setFilteredCourses(coursesData);
+      } catch (error) {
+        setError('Erreur lors de la récupération des cours. Veuillez réessayer.');
+        console.error('Error fetching courses:', error);
+      }
+    };
+    fetchCourses();
   }, []);
 
   const handleRequestSort = (property) => {
@@ -43,7 +53,7 @@ function Matieres() {
     const value = event.target.value.toLowerCase();
     setSearch(value);
     setFilteredCourses(
-      courses.filter(course => course.toLowerCase().includes(value))
+      courses.filter(course => course.name.toLowerCase().includes(value))
     );
   };
 
@@ -66,18 +76,25 @@ function Matieres() {
   };
 
   const handleSaveCourse = (updatedCourse) => {
-    setCourses(courses.map(course => (course === editingCourse ? updatedCourse : course)));
-    setFilteredCourses(courses.map(course => (course === editingCourse ? updatedCourse : course)));
+    setCourses(courses.map(course => (course._id === updatedCourse._id ? updatedCourse : course)));
+    setFilteredCourses(courses.map(course => (course._id === updatedCourse._id ? updatedCourse : course)));
     setEditingCourse(null);
   };
 
-  const handleDeleteCourse = (course) => {
-    setCourses(courses.filter(c => c !== course));
-    setFilteredCourses(courses.filter(c => c !== course));
+  const handleDeleteCourse = async (courseId) => {
+    try {
+      await deleteCourse(courseId);
+      setCourses(courses.filter(course => course._id !== courseId));
+      setFilteredCourses(courses.filter(course => course._id !== courseId));
+    } catch (error) {
+      setError('Erreur lors de la suppression de la matière. Veuillez réessayer.');
+      console.error('Error deleting course:', error);
+    }
   };
 
   return (
     <div style={{ padding: '20px' }}>
+      {error && <Alert severity="error">{error}</Alert>}
       <TextField
         label="Search"
         variant="outlined"
@@ -93,25 +110,27 @@ function Matieres() {
             <TableRow>
               <TableCell>
                 <TableSortLabel
-                  active={orderBy === 'course'}
-                  direction={orderBy === 'course' ? order : 'asc'}
-                  onClick={() => handleRequestSort('course')}
+                  active={orderBy === 'name'}
+                  direction={orderBy === 'name' ? order : 'asc'}
+                  onClick={() => handleRequestSort('name')}
                 >
-                  Course
+                  Nom du cours
                 </TableSortLabel>
               </TableCell>
+              <TableCell>Code du cours</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredCourses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((course, index) => (
-              <TableRow key={index}>
-                <TableCell>{course}</TableCell>
+            {filteredCourses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((course) => (
+              <TableRow key={course._id}>
+                <TableCell>{course.name}</TableCell>
+                <TableCell>{course.code}</TableCell>
                 <TableCell>
                   <IconButton color="primary" aria-label="edit course" onClick={() => handleEditCourse(course)}>
                     <EditIcon />
                   </IconButton>
-                  <IconButton color="secondary" aria-label="delete course" onClick={() => handleDeleteCourse(course)}>
+                  <IconButton color="secondary" aria-label="delete course" onClick={() => handleDeleteCourse(course._id)}>
                     <DeleteIcon />
                   </IconButton>
                 </TableCell>

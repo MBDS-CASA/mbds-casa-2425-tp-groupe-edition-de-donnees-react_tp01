@@ -48,14 +48,14 @@ function EditStudent({ student, onSave, onClose }) {
           value={lastname}
           onChange={(e) => setLastname(e.target.value)}
         />
-        <TextField
-          margin="dense"
-          label="ID"
-          type="text"
-          fullWidth
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-        />
+        {/*<TextField*/}
+        {/*  margin="dense"*/}
+        {/*  label="ID"*/}
+        {/*  type="text"*/}
+        {/*  fullWidth*/}
+        {/*  value={id}*/}
+        {/*  onChange={(e) => setId(e.target.value)}*/}
+        {/*/>*/}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="primary">
