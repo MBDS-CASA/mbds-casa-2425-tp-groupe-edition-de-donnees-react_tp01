@@ -1,0 +1,26 @@
+
+/* Notes.css */
+.notes-container {
+    transition: all 0.3s ease-in-out;
+}
+.table-container {
+    transition: transform 0.3s ease-in-out;
+}
+.fade-enter {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+.fade-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 500ms, transform 500ms;
+}
+.fade-exit {
+    opacity: 1;
+    transform: translateY(0);
+}
+.fade-exit-active {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 500ms, transform 500ms;
+}
